@@ -1,0 +1,68 @@
+name: Deploy backend to Cloud Run
+
+# backend/ 변경분이 main에 머지될 때만 배포한다.
+# NOTE: Cloud Run 콘솔의 "저장소에서 지속적 배포" 기능(backend/cloudbuild.yaml 사용)을
+# 쓰기로 했다면 이 워크플로는 지우거나 비활성화해서 이중 배포를 피할 것.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "backend/**"
+      - ".github/workflows/deploy-backend.yml"
+
+env:
+  SERVICE_NAME: local-bridge-backend
+  REGION: asia-northeast3
+  REPOSITORY: local-bridge
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r requirements-dev.txt
+      - run: pytest -q
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # Workload Identity Federation에 필요
+    steps:
+      - uses: actions/checkout@v4
+
+      # 사전 준비(1회): Workload Identity Federation 풀·프로바이더와
+      # Cloud Run/Artifact Registry 권한을 가진 서비스 계정을 만들고,
+      # 아래 두 값을 저장소 Settings → Secrets and variables → Actions 에 등록한다.
+      #   WIF_PROVIDER: projects/<PROJECT_NUMBER>/locations/global/workloadIdentityPools/<POOL>/providers/<PROVIDER>
+      #   WIF_SERVICE_ACCOUNT: <sa-name>@<PROJECT_ID>.iam.gserviceaccount.com
+      #   GCP_PROJECT_ID: <PROJECT_ID>
+      - id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
+          service_account: ${{ secrets.WIF_SERVICE_ACCOUNT }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - name: Build and push image
+        run: |
+          gcloud auth configure-docker "${REGION}-docker.pkg.dev" --quiet
+          IMAGE="${REGION}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${REPOSITORY}/${SERVICE_NAME}:${{ github.sha }}"
+          docker build -t "$IMAGE" backend
+          docker push "$IMAGE"
+          echo "IMAGE=$IMAGE" >> "$GITHUB_ENV"
+
+      - name: Deploy to Cloud Run
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: ${{ env.SERVICE_NAME }}
+          region: ${{ env.REGION }}
+          image: ${{ env.IMAGE }}
