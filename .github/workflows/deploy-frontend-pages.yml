@@ -3,10 +3,7 @@ name: Deploy frontend to GitHub Pages
 on:
   push:
     branches: [main]
-    paths:
-      - "frontend/**"
-      - ".github/workflows/deploy-frontend-pages.yml"
-  workflow_dispatch: {} # Actions 탭에서 수동 실행 가능
+  workflow_dispatch: {}
 
 permissions:
   contents: read
@@ -20,9 +17,6 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: frontend
     steps:
       - uses: actions/checkout@v4
 
@@ -33,17 +27,14 @@ jobs:
 
       - run: flutter pub get
 
-      # 저장소가 조직 프로젝트 페이지(<org>.github.io/<repo>/)로 서빙되므로
-      # base-href를 repo 이름과 맞춰야 정적 리소스 경로가 깨지지 않는다.
-      # API 주소는 기존 dart-define 파일(env/prod.json)을 그대로 재사용한다 — 하드코딩 없음.
       - run: |
           flutter build web --release \
-            --base-href=/Suwon_multiculturalism_v2/ \
+            --base-href=/Local_Bridge_Frontend/ \
             --dart-define-from-file=env/prod.json
 
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: frontend/build/web
+          path: build/web
 
   deploy:
     needs: build
