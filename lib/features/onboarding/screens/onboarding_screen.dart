@@ -3,6 +3,8 @@ import '../../../core/app_language.dart';
 import '../../../core/user_profile_controller.dart';
 import '../../../core/visa_status.dart';
 import '../../../theme/app_colors.dart';
+import '../../auth/screens/login_screen.dart';
+import '../../auth/screens/signup_form_screen.dart';
 
 /// 최초 실행 온보딩 — 언어 → 체류자격 → 서류 보관함 3단계.
 /// 화면 전체를 덮고(스플래시 아래), 완료하거나 첫 단계에서 건너뛰면 사라진다.
@@ -266,6 +268,31 @@ class _LanguageStep extends StatelessWidget {
   }
 }
 
+const _hasAccountLabel = L10nText(
+  ko: '이미 계정이 있으신가요?',
+  en: 'Already have an account?',
+  zh: '已有账号？',
+  vi: 'Đã có tài khoản?',
+);
+const _loginLabel = L10nText(
+  ko: '로그인',
+  en: 'Log in',
+  zh: '登录',
+  vi: 'Đăng nhập',
+);
+const _signupLabel = L10nText(
+  ko: '회원가입',
+  en: 'Sign up',
+  zh: '注册',
+  vi: 'Đăng ký',
+);
+const _signedInAsLabel = L10nText(
+  ko: '계정으로 로그인됨',
+  en: 'Signed in',
+  zh: '已登录账号',
+  vi: 'Đã đăng nhập',
+);
+
 class _VisaStep extends StatelessWidget {
   const _VisaStep({super.key, required this.profile, required this.language});
   final UserProfileController profile;
@@ -276,6 +303,94 @@ class _VisaStep extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 18),
       children: [
+        if (profile.isSignedIn)
+          Container(
+            margin: const EdgeInsets.only(bottom: 14),
+            padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 12),
+            decoration: BoxDecoration(
+              color: AppColors.blueBg,
+              border: Border.all(color: AppColors.blueBorder),
+              borderRadius: BorderRadius.circular(11),
+            ),
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.check_circle,
+                  color: AppColors.primary,
+                  size: 18,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    '${profile.displayName ?? profile.email ?? ''} · ${_signedInAsLabel.of(language)}',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          )
+        else
+          Container(
+            margin: const EdgeInsets.only(bottom: 14),
+            padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              border: Border.all(color: AppColors.border),
+              borderRadius: BorderRadius.circular(11),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    _hasAccountLabel.of(language),
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const LoginScreen()),
+                  ),
+                  child: Text(
+                    _loginLabel.of(language),
+                    style: const TextStyle(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const SignupFormScreen()),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 10,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: Text(
+                    _signupLabel.of(language),
+                    style: const TextStyle(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         for (final visa in VisaStatus.values)
           _PickRow(
             code: visa.code,

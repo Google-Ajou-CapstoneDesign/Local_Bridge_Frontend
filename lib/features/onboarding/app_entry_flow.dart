@@ -17,7 +17,6 @@ class AppEntryFlow extends StatefulWidget {
 }
 
 class _AppEntryFlowState extends State<AppEntryFlow> {
-  final _profile = UserProfileController();
   _EntryStage _stage = _EntryStage.splash;
   bool _prepareStarted = false;
 
@@ -47,39 +46,30 @@ class _AppEntryFlowState extends State<AppEntryFlow> {
   }
 
   void _finishOnboarding() {
-    _profile.completeOnboarding();
+    UserProfileScope.of(context).completeOnboarding();
     setState(() => _stage = _EntryStage.ready);
   }
 
   @override
-  void dispose() {
-    _profile.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return UserProfileScope(
-      controller: _profile,
-      child: Stack(
-        children: [
-          const MainShell(),
-          if (_stage == _EntryStage.onboarding)
-            Positioned.fill(
-              child: OnboardingScreen(onFinished: _finishOnboarding),
-            ),
+    return Stack(
+      children: [
+        const MainShell(),
+        if (_stage == _EntryStage.onboarding)
           Positioned.fill(
-            child: IgnorePointer(
-              ignoring: _stage != _EntryStage.splash,
-              child: AnimatedOpacity(
-                opacity: _stage == _EntryStage.splash ? 1 : 0,
-                duration: const Duration(milliseconds: 450),
-                child: const SplashScreen(),
-              ),
+            child: OnboardingScreen(onFinished: _finishOnboarding),
+          ),
+        Positioned.fill(
+          child: IgnorePointer(
+            ignoring: _stage != _EntryStage.splash,
+            child: AnimatedOpacity(
+              opacity: _stage == _EntryStage.splash ? 1 : 0,
+              duration: const Duration(milliseconds: 450),
+              child: const SplashScreen(),
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
