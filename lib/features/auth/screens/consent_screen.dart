@@ -105,9 +105,13 @@ class _S {
 }
 
 class ConsentScreen extends StatefulWidget {
-  const ConsentScreen({super.key, required this.draft});
+  const ConsentScreen({super.key, required this.draft, this.onComplete});
 
   final SignupDraft draft;
+
+  /// SignupFormScreen이 AppEntryFlow의 오버레이로(Navigator.push 없이) 진입한
+  /// 경우에만 채워진다 — pop 대신 이 콜백으로 완료를 알린다.
+  final VoidCallback? onComplete;
 
   @override
   State<ConsentScreen> createState() => _ConsentScreenState();
@@ -162,10 +166,14 @@ class _ConsentScreenState extends State<ConsentScreen> {
         visa: draft.visa,
         nationality: draft.countryCode,
       );
-      // 회원가입 폼 + 동의 화면 둘 다 닫고 온보딩(체류자격 화면)으로 복귀.
-      Navigator.of(context)
-        ..pop()
-        ..pop();
+      if (widget.onComplete != null) {
+        widget.onComplete!();
+      } else {
+        // 회원가입 폼 + 동의 화면 둘 다 닫고 온보딩(체류자격 화면)으로 복귀.
+        Navigator.of(context)
+          ..pop()
+          ..pop();
+      }
     } on FirebaseAuthException catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(

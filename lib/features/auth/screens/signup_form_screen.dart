@@ -138,7 +138,24 @@ class _S {
 }
 
 class SignupFormScreen extends StatefulWidget {
-  const SignupFormScreen({super.key});
+  const SignupFormScreen({
+    super.key,
+    this.isGoogleFlow = false,
+    this.initialName,
+    this.initialEmail,
+    this.onGoogleSignupComplete,
+  });
+
+  /// true면 이미 Google로 인증된 상태에서 진입한 것 — 이메일/비밀번호 필드를
+  /// 숨기고 성명·이메일을 미리 채운다(AppEntryFlow가 리다이렉트 복귀 후
+  /// 새 사용자를 여기로 바로 보낼 때 씀).
+  final bool isGoogleFlow;
+  final String? initialName;
+  final String? initialEmail;
+
+  /// isGoogleFlow일 때만 쓰인다 — 이 화면이 Navigator.push로 들어온 게 아니라
+  /// AppEntryFlow가 오버레이로 직접 띄운 것이라 pop 대신 콜백으로 완료를 알린다.
+  final VoidCallback? onGoogleSignupComplete;
 
   @override
   State<SignupFormScreen> createState() => _SignupFormScreenState();
@@ -146,15 +163,19 @@ class SignupFormScreen extends StatefulWidget {
 
 class _SignupFormScreenState extends State<SignupFormScreen> {
   final _authService = AuthService();
-  final _nameController = TextEditingController();
-  final _emailController = TextEditingController();
+  late final _nameController = TextEditingController(
+    text: widget.initialName ?? '',
+  );
+  late final _emailController = TextEditingController(
+    text: widget.initialEmail ?? '',
+  );
   final _passwordController = TextEditingController();
   final _passwordConfirmController = TextEditingController();
   final _customVisaController = TextEditingController();
 
   VisaStatus _visa = VisaStatus.e9;
   Country? _country;
-  bool _isGoogleFlow = false;
+  late bool _isGoogleFlow = widget.isGoogleFlow;
   bool _googleLoading = false;
 
   String? _nameError;
@@ -172,11 +193,13 @@ class _SignupFormScreenState extends State<SignupFormScreen> {
     super.dispose();
   }
 
+  /// 웹에서는 signInWithRedirect라 페이지가 곧 이동한다 — 여기서 결과를
+  /// 기다리지 않는다(돌아온 뒤엔 AppEntryFlow가 이어서 처리한다).
   Future<void> _continueWithGoogle(AppLanguage lang) async {
     setState(() => _googleLoading = true);
     try {
       final credential = await _authService.signInWithGoogle();
-      if (credential == null) return; // 사용자가 취소함
+      if (credential == null) return; // 웹: 리다이렉트로 페이지 이동. 모바일: 사용자가 취소함.
       final user = credential.user;
       setState(() {
         _isGoogleFlow = true;
@@ -248,9 +271,14 @@ class _SignupFormScreenState extends State<SignupFormScreen> {
           : null,
       countryCode: _country!.code,
     );
-    Navigator.of(
-      context,
-    ).push(MaterialPageRoute(builder: (_) => ConsentScreen(draft: draft)));
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => ConsentScreen(
+          draft: draft,
+          onComplete: widget.onGoogleSignupComplete,
+        ),
+      ),
+    );
   }
 
   @override

@@ -45,10 +45,10 @@ class _S {
   );
   static const orDivider = L10nText(ko: '또는', en: 'or', zh: '或', vi: 'hoặc');
   static const noAccountLabel = L10nText(
-    ko: '아직 계정이 없으신가요? 회원가입',
-    en: "Don't have an account? Sign up",
-    zh: '还没有账号？注册',
-    vi: 'Chưa có tài khoản? Đăng ký',
+    ko: '아직 가입하지 않으셨나요? 회원가입하기',
+    en: "Haven't signed up yet? Create an account",
+    zh: '还没有注册？去注册',
+    vi: 'Chưa đăng ký? Đăng ký ngay',
   );
   static const errorInvalid = L10nText(
     ko: '이메일 또는 비밀번호가 올바르지 않아요.',
@@ -64,14 +64,19 @@ class _S {
   );
 }
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+/// 이메일/비밀번호 + Google 로그인 폼 본체. 독립 화면([LoginScreen])과
+/// 온보딩 단계([_VisaStep]) 양쪽에서 그대로 재사용한다 — 로그인 성공 시
+/// [onSuccess]를 호출할 뿐, 화면 전환(pop 또는 다음 단계 이동)은 호출부가 정한다.
+class LoginFormBody extends StatefulWidget {
+  const LoginFormBody({super.key, required this.onSuccess});
+
+  final VoidCallback onSuccess;
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<LoginFormBody> createState() => _LoginFormBodyState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginFormBodyState extends State<LoginFormBody> {
   final _authService = AuthService();
   final _userProfileApi = UserProfileApiService();
   final _emailController = TextEditingController();
@@ -85,11 +90,7 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  Future<void> _applyProfileAfterLogin(
-    String uid,
-    String? email,
-    AppLanguage lang,
-  ) async {
+  Future<void> _applyProfileAfterLogin(String uid, String? email) async {
     try {
       final idToken = await _authService.currentIdToken();
       if (idToken == null) return;
@@ -118,13 +119,9 @@ class _LoginScreenState extends State<LoginScreen> {
         _emailController.text.trim(),
         _passwordController.text,
       );
-      await _applyProfileAfterLogin(
-        credential.user!.uid,
-        credential.user!.email,
-        lang,
-      );
+      await _applyProfileAfterLogin(credential.user!.uid, credential.user!.email);
       if (!mounted) return;
-      Navigator.of(context).pop();
+      widget.onSuccess();
     } on FirebaseAuthException catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(
@@ -139,14 +136,10 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _loading = true);
     try {
       final credential = await _authService.signInWithGoogle();
-      if (credential == null) return; // 취소
-      await _applyProfileAfterLogin(
-        credential.user!.uid,
-        credential.user!.email,
-        lang,
-      );
+      if (credential == null) return; // 취소 또는 웹 리다이렉트로 페이지 이동
+      await _applyProfileAfterLogin(credential.user!.uid, credential.user!.email);
       if (!mounted) return;
-      Navigator.of(context).pop();
+      widget.onSuccess();
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(
@@ -156,6 +149,82 @@ class _LoginScreenState extends State<LoginScreen> {
       if (mounted) setState(() => _loading = false);
     }
   }
+
+  @override
+  Widget build(BuildContext context) {
+    final lang = UserProfileScope.of(context).language;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        AuthTextField(
+          label: _S.emailLabel.of(lang),
+          controller: _emailController,
+          keyboardType: TextInputType.emailAddress,
+        ),
+        const SizedBox(height: 12),
+        AuthTextField(
+          label: _S.passwordLabel.of(lang),
+          controller: _passwordController,
+          obscureText: true,
+        ),
+        const SizedBox(height: 18),
+        ElevatedButton(
+          onPressed: _loading ? null : () => _login(lang),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.primary,
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(vertical: 14),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(11),
+            ),
+          ),
+          child: _loading
+              ? const SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
+                )
+              : Text(
+                  _S.loginLabel.of(lang),
+                  style: const TextStyle(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+        ),
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            const Expanded(child: Divider()),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              child: Text(
+                _S.orDivider.of(lang),
+                style: const TextStyle(
+                  fontSize: 11,
+                  color: AppColors.textMuted,
+                ),
+              ),
+            ),
+            const Expanded(child: Divider()),
+          ],
+        ),
+        const SizedBox(height: 16),
+        GoogleSignInButton(
+          label: _S.googleLabel,
+          language: lang,
+          onPressed: _loading ? () {} : () => _loginWithGoogle(lang),
+        ),
+      ],
+    );
+  }
+}
+
+class LoginScreen extends StatelessWidget {
+  const LoginScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -172,71 +241,7 @@ class _LoginScreenState extends State<LoginScreen> {
         child: ListView(
           padding: const EdgeInsets.all(18),
           children: [
-            AuthTextField(
-              label: _S.emailLabel.of(lang),
-              controller: _emailController,
-              keyboardType: TextInputType.emailAddress,
-            ),
-            const SizedBox(height: 12),
-            AuthTextField(
-              label: _S.passwordLabel.of(lang),
-              controller: _passwordController,
-              obscureText: true,
-            ),
-            const SizedBox(height: 20),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _loading ? null : () => _login(lang),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(11),
-                  ),
-                ),
-                child: _loading
-                    ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
-                    : Text(
-                        _S.loginLabel.of(lang),
-                        style: const TextStyle(
-                          fontSize: 13.5,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                const Expanded(child: Divider()),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10),
-                  child: Text(
-                    _S.orDivider.of(lang),
-                    style: const TextStyle(
-                      fontSize: 11,
-                      color: AppColors.textMuted,
-                    ),
-                  ),
-                ),
-                const Expanded(child: Divider()),
-              ],
-            ),
-            const SizedBox(height: 16),
-            GoogleSignInButton(
-              label: _S.googleLabel,
-              language: lang,
-              onPressed: _loading ? () {} : () => _loginWithGoogle(lang),
-            ),
+            LoginFormBody(onSuccess: () => Navigator.of(context).pop()),
             const SizedBox(height: 22),
             Center(
               child: TextButton(

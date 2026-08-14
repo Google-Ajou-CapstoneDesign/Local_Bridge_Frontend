@@ -33,10 +33,20 @@ class AuthService {
     return _auth.signInWithEmailAndPassword(email: email, password: password);
   }
 
-  /// 사용자가 Google 로그인 팝업에서 취소하면 null을 반환한다(에러 아님).
+  /// 웹에서는 signInWithPopup 대신 signInWithRedirect를 쓴다 — 최신 Chrome의
+  /// Cross-Origin-Opener-Policy가 팝업의 window.closed 감지를 막아버려서
+  /// 로그인 팝업이 뜨자마자 응답 없이 끝나버리는 문제가 있다(호스팅 서버가
+  /// COOP 헤더를 따로 설정해주지 않는 한 재현됨). 리다이렉트는 이 문제 자체가
+  /// 없고 호스팅 설정에 의존하지 않는다 — 대신 페이지 전체가 이동했다 돌아오므로
+  /// 여기서는 값을 돌려주지 못한다(호출 직후 화면이 사라짐). 앱 재시작 시
+  /// [consumeRedirectResult]로 결과를 받는다.
+  ///
+  /// 웹이 아닌 플랫폼(모바일)은 google_sign_in으로 즉시 로그인하고 결과를
+  /// 바로 반환한다 — 사용자가 취소하면 null(에러 아님).
   Future<UserCredential?> signInWithGoogle() async {
     if (kIsWeb) {
-      return _auth.signInWithPopup(GoogleAuthProvider());
+      await _auth.signInWithRedirect(GoogleAuthProvider());
+      return null;
     }
     final googleUser = await _googleSignIn.signIn();
     if (googleUser == null) return null;
@@ -46,6 +56,15 @@ class AuthService {
       idToken: googleAuth.idToken,
     );
     return _auth.signInWithCredential(credential);
+  }
+
+  /// 앱이 (다시) 시작될 때 한 번 호출한다 — [signInWithGoogle]의 리다이렉트로
+  /// 떠났다가 돌아온 경우 그 결과를 받는다. 리다이렉트가 없었던 평범한 로딩이면
+  /// null을 반환한다.
+  Future<UserCredential?> consumeRedirectResult() async {
+    if (!kIsWeb) return null;
+    final result = await _auth.getRedirectResult();
+    return result.user == null ? null : result;
   }
 
   Future<void> updateDisplayName(String name) async {
