@@ -455,12 +455,14 @@ class _NavigatorFlowScreenState extends State<NavigatorFlowScreen> {
             ),
           ),
         ),
-        ImportButtonsBlock(:final sources) => ImportButtonsRow(
-          sources: sources,
-          imported: _importedSources,
-          lang: lang,
-          onImport: _handleImport,
-        ),
+        ImportButtonsBlock(:final sources, :final comingSoon) =>
+          ImportButtonsRow(
+            sources: sources,
+            imported: _importedSources,
+            lang: lang,
+            comingSoon: comingSoon,
+            onImport: _handleImport,
+          ),
         FormEditBlock(
           :final sections,
           :final documentTitle,
@@ -496,7 +498,6 @@ class _NavigatorFlowScreenState extends State<NavigatorFlowScreen> {
         WageCalcBlock() => WageCalcSection(
           scratch: _wageScratch,
           lang: lang,
-          accentColor: _accentColor,
           onAdvance: _next,
         ),
         // 임금 플로우에선 쓰이지 않는 블록.
