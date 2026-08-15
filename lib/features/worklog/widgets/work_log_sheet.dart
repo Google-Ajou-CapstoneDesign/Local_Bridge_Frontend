@@ -964,6 +964,8 @@ class _DailyHookBody extends StatelessWidget {
             ],
           ),
         ),
+        const SizedBox(height: 11),
+        _VaultBox(language: language),
         const SizedBox(height: 14),
         Text(
           _WorkLogStrings.nextStepsLabel.of(language),
