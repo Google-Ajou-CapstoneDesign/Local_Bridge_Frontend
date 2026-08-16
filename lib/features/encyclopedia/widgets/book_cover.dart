@@ -11,10 +11,12 @@ class BookCover extends StatelessWidget {
     super.key,
     required this.language,
     required this.onOpenItem,
+    required this.onSearchTap,
   });
 
   final AppLanguage language;
   final ValueChanged<int> onOpenItem;
+  final VoidCallback onSearchTap;
 
   static const _visaDDay = 42;
 
@@ -213,25 +215,32 @@ class BookCover extends StatelessWidget {
           ),
           const SizedBox(height: 14),
 
-          // 검색창 (비활성 — 2차 단계에서 실제 검색 연결)
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 11),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.94),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Row(
-              children: [
-                const Text('🔍', style: TextStyle(fontSize: 13)),
-                const SizedBox(width: 8),
-                Text(
-                  EncyclopediaStrings.searchHint.of(language),
-                  style: const TextStyle(
-                    color: Color(0xFF90CAF9),
-                    fontSize: 11.5,
+          // 검색창
+          InkWell(
+            onTap: onSearchTap,
+            borderRadius: BorderRadius.circular(10),
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 13,
+                vertical: 11,
+              ),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.94),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Row(
+                children: [
+                  const Text('🔍', style: TextStyle(fontSize: 13)),
+                  const SizedBox(width: 8),
+                  Text(
+                    EncyclopediaStrings.searchHint.of(language),
+                    style: const TextStyle(
+                      color: Color(0xFF90CAF9),
+                      fontSize: 11.5,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ],

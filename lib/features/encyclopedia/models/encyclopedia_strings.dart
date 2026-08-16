@@ -59,6 +59,18 @@ class EncyclopediaStrings {
     zh: '搜索您需要的信息',
     vi: 'Tìm thông tin bạn cần',
   );
+  static const searchNoResults = L10nText(
+    ko: '검색 결과가 없습니다.\n다른 단어로 검색해 보세요.',
+    en: 'No results found.\nTry a different search term.',
+    zh: '没有搜索结果。\n请尝试其他关键词。',
+    vi: 'Không có kết quả.\nHãy thử từ khóa khác.',
+  );
+  static const searchEmptyPrompt = L10nText(
+    ko: '카테고리 이름으로 검색해 보세요',
+    en: 'Try searching by category name',
+    zh: '请尝试用分类名称搜索',
+    vi: 'Hãy thử tìm theo tên danh mục',
+  );
   static const soonBadge = L10nText(
     ko: '준비 중',
     en: 'Coming soon',

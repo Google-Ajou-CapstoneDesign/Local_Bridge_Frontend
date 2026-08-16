@@ -106,7 +106,6 @@ class _MainShellState extends State<MainShell> {
     HomeScreen(
       workLogController: _workLogController,
       onOpenWorkLog: _openWorkLog,
-      onOpenAiChat: _toggleAiChat,
     ),
     const WageCalculatorScreen(),
     const EncyclopediaHomeScreen(),
