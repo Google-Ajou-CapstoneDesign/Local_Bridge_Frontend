@@ -26,13 +26,6 @@ class _WorkLogStrings {
     vi: 'Ghi chép hằng ngày là bằng chứng chắc chắn nhất',
   );
   static const close = L10nText(ko: '닫기', en: 'Close', zh: '关闭', vi: 'Đóng');
-  static const tapHint = L10nText(
-    ko: '날짜를 탭하면 그날의 출퇴근 기록을 확인하고 수정할 수 있어요',
-    en: "Tap a date to check and edit that day's clock-in/out record",
-    zh: '点击日期即可查看并修改当天的上下班记录',
-    vi: 'Chạm vào ngày để xem và chỉnh sửa giờ vào ca/tan ca hôm đó',
-  );
-
   static const legendLogged = L10nText(
     ko: '기록 완료',
     en: 'Recorded',
@@ -120,6 +113,18 @@ class _WorkLogStrings {
     en: 'Clock out',
     zh: '下班',
     vi: 'Tan ca',
+  );
+  static const clockInNow = L10nText(
+    ko: '출근하기',
+    en: 'Clock in',
+    zh: '上班打卡',
+    vi: 'Chấm công vào',
+  );
+  static const clockOutNow = L10nText(
+    ko: '퇴근하기',
+    en: 'Clock out',
+    zh: '下班打卡',
+    vi: 'Chấm công ra',
   );
   static const breakLabel = L10nText(
     ko: '휴게',
@@ -442,7 +447,10 @@ class _WorkLogSheetState extends State<WorkLogSheet> {
                               onDayTap: (day) => _openDayRecord(day, lang),
                               language: lang,
                             ),
-                            _TapHint(language: lang),
+                            _TodayClockActions(
+                              controller: _controller,
+                              language: lang,
+                            ),
                           ],
                         ),
                       ),
@@ -458,37 +466,95 @@ class _WorkLogSheetState extends State<WorkLogSheet> {
   }
 }
 
-class _TapHint extends StatelessWidget {
-  const _TapHint({required this.language});
+class _TodayClockActions extends StatelessWidget {
+  const _TodayClockActions({required this.controller, required this.language});
+
+  final WorkLogController controller;
   final AppLanguage language;
+
+  String _formatTime(TimeOfDay time) =>
+      '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
 
   @override
   Widget build(BuildContext context) {
+    final record = controller.todayRecord;
+    final hasClockIn = record.clockIn != null;
+    final hasClockOut = record.clockOut != null;
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(15, 16, 15, 24),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          border: Border.all(color: AppColors.border),
-          borderRadius: BorderRadius.circular(13),
-        ),
-        child: Row(
-          children: [
-            const Text('👆', style: TextStyle(fontSize: 18)),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                _WorkLogStrings.tapHint.of(language),
-                style: const TextStyle(
-                  fontSize: 11.5,
-                  color: AppColors.textSecondary,
-                  height: 1.5,
+      child: Row(
+        children: [
+          Expanded(
+            child: FilledButton.icon(
+              onPressed: hasClockIn ? null : controller.clockInToday,
+              icon: Icon(
+                hasClockIn ? Icons.check_circle : Icons.login_rounded,
+                size: 18,
+              ),
+              label: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  hasClockIn
+                      ? '${_WorkLogStrings.clockIn.of(language)} ${_formatTime(record.clockIn!)}'
+                      : _WorkLogStrings.clockInNow.of(language),
+                ),
+              ),
+              style: FilledButton.styleFrom(
+                minimumSize: const Size.fromHeight(52),
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                disabledBackgroundColor: AppColors.blueBg,
+                disabledForegroundColor: AppColors.primary,
+                textStyle: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w800,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(13),
                 ),
               ),
             ),
-          ],
-        ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: FilledButton.icon(
+              onPressed: hasClockIn && !hasClockOut
+                  ? controller.clockOutToday
+                  : null,
+              icon: Icon(
+                hasClockOut ? Icons.check_circle : Icons.logout_rounded,
+                size: 18,
+              ),
+              label: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  hasClockOut
+                      ? '${_WorkLogStrings.clockOut.of(language)} ${_formatTime(record.clockOut!)}'
+                      : _WorkLogStrings.clockOutNow.of(language),
+                ),
+              ),
+              style: FilledButton.styleFrom(
+                minimumSize: const Size.fromHeight(52),
+                backgroundColor: AppColors.secondary,
+                foregroundColor: Colors.white,
+                disabledBackgroundColor: hasClockOut
+                    ? AppColors.green50
+                    : AppColors.border,
+                disabledForegroundColor: hasClockOut
+                    ? AppColors.green900
+                    : AppColors.textMuted,
+                textStyle: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w800,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(13),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
