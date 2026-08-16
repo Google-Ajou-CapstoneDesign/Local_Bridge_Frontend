@@ -193,7 +193,7 @@ class _HomeHeader extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
               decoration: BoxDecoration(
                 color: Colors.white,
-                border: Border.all(color: const Color(0xFFE4EBF5)),
+                border: Border.all(color: const Color(0xFFE3F2FD)),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Row(
@@ -244,7 +244,7 @@ class _HomeWidgetCard extends StatelessWidget {
         gradient: gradient,
         borderRadius: BorderRadius.circular(18),
         border: gradient == null
-            ? Border.all(color: const Color(0xFFE4EBF5))
+            ? Border.all(color: const Color(0xFFE3F2FD))
             : null,
         boxShadow: gradient == null
             ? [
@@ -309,8 +309,8 @@ class _DemoTag extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
       decoration: BoxDecoration(
-        color: AppColors.amberBg,
-        border: Border.all(color: AppColors.amberBorder),
+        color: AppColors.noticeBg,
+        border: Border.all(color: AppColors.noticeBorder),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(
@@ -318,7 +318,7 @@ class _DemoTag extends StatelessWidget {
         style: const TextStyle(
           fontSize: 9,
           fontWeight: FontWeight.w800,
-          color: AppColors.amberText,
+          color: AppColors.noticeText,
         ),
       ),
     );
@@ -406,7 +406,7 @@ class _RingPainter extends CustomPainter {
     final center = size.center(Offset.zero);
     final radius = (size.width - strokeWidth) / 2;
     final bg = Paint()
-      ..color = const Color(0xFFE7EDF6)
+      ..color = const Color(0xFFE3F2FD)
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth
       ..strokeCap = StrokeCap.round;
@@ -555,7 +555,7 @@ class _WorkWidget extends StatelessWidget {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
                         foregroundColor: Colors.white,
-                        disabledBackgroundColor: const Color(0xFFDCE6F7),
+                        disabledBackgroundColor: const Color(0xFFE3F2FD),
                         disabledForegroundColor: AppColors.textMuted,
                         padding: const EdgeInsets.symmetric(vertical: 9),
                         shape: RoundedRectangleBorder(
@@ -780,7 +780,7 @@ class _WeatherWidgetState extends State<_WeatherWidget> {
               margin: const EdgeInsets.only(top: 7),
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 7),
               decoration: BoxDecoration(
-                color: AppColors.amberBg,
+                color: AppColors.noticeBg,
                 borderRadius: BorderRadius.circular(9),
               ),
               child: Row(
@@ -794,7 +794,7 @@ class _WeatherWidgetState extends State<_WeatherWidget> {
                       style: const TextStyle(
                         fontSize: 9.5,
                         fontWeight: FontWeight.w700,
-                        color: AppColors.amberText,
+                        color: AppColors.noticeText,
                         height: 1.4,
                       ),
                     ),
@@ -830,7 +830,7 @@ class _CaseWidget extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: AppColors.amberBg,
+                  color: AppColors.noticeBg,
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
@@ -838,7 +838,7 @@ class _CaseWidget extends StatelessWidget {
                   style: const TextStyle(
                     fontSize: 9.5,
                     fontWeight: FontWeight.w800,
-                    color: AppColors.amberText,
+                    color: AppColors.noticeText,
                   ),
                 ),
               ),
@@ -860,7 +860,7 @@ class _CaseWidget extends StatelessWidget {
             children: List.generate(_total, (i) {
               final color = i < _now
                   ? AppColors.secondary
-                  : (i == _now ? AppColors.accent : const Color(0xFFE7EDF6));
+                  : (i == _now ? AppColors.accent : const Color(0xFFE3F2FD));
               return Expanded(
                 child: Container(
                   margin: EdgeInsets.only(right: i < _total - 1 ? 3 : 0),
@@ -910,7 +910,7 @@ class _AiWidget extends StatelessWidget {
       gradient: const LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
-        colors: [Color(0xFF1E40AF), Color(0xFF16307E)],
+        colors: [Color(0xFF2196F3), Color(0xFF0D47A1)],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -961,7 +961,7 @@ class _AiWidget extends StatelessWidget {
                           chip.of(lang),
                           style: const TextStyle(
                             fontSize: 10,
-                            color: Color(0xFFEAF0FC),
+                            color: Color(0xFFE3F2FD),
                           ),
                         ),
                       ),
@@ -989,7 +989,7 @@ class _NavigatorLinksRow extends StatelessWidget {
       children: [
         Expanded(
           child: _NavigatorLinkCard(
-            gradient: const [Color(0xFFE08A1E), Color(0xFFB45309)],
+            gradient: const [Color(0xFF2196F3), Color(0xFF0D47A1)],
             emoji: '💸',
             title: HomeStrings.wageNavTitle.of(lang),
             subtitle: HomeStrings.wageNavSubtitle.of(lang),
@@ -1001,7 +1001,7 @@ class _NavigatorLinksRow extends StatelessWidget {
         const SizedBox(width: 9),
         Expanded(
           child: _NavigatorLinkCard(
-            gradient: const [Color(0xFF12A594), Color(0xFF0B7267)],
+            gradient: const [Color(0xFF4CAF50), Color(0xFF1B5E20)],
             emoji: '⛑️',
             title: HomeStrings.injuryNavTitle.of(lang),
             subtitle: HomeStrings.injuryNavSubtitle.of(lang),
@@ -1097,7 +1097,7 @@ class _OrgWidget extends StatelessWidget {
                 height: 30,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFE6F6F4),
+                  color: const Color(0xFFE8F5E9),
                   borderRadius: BorderRadius.circular(9),
                 ),
                 child: const Text('🏢', style: TextStyle(fontSize: 14)),

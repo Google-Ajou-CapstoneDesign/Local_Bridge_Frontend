@@ -24,7 +24,7 @@ class BookCover extends StatelessWidget {
     gradient: LinearGradient(
       begin: Alignment.topLeft,
       end: Alignment.bottomRight,
-      colors: [Color(0xFF1E3A6E), Color(0xFF132747)],
+      colors: [Color(0xFF0D47A1), Color(0xFF0D47A1)],
     ),
   );
 
@@ -39,7 +39,7 @@ class BookCover extends StatelessWidget {
           const Text(
             'LOCAL BRIDGE',
             style: TextStyle(
-              color: Color(0xB8E8C88A),
+              color: Color(0xB890CAF9),
               fontSize: 10,
               fontWeight: FontWeight.w700,
               letterSpacing: 3.5,
@@ -49,7 +49,7 @@ class BookCover extends StatelessWidget {
           Text(
             EncyclopediaStrings.coverTitle.of(language),
             style: const TextStyle(
-              color: Color(0xFFF4F7FC),
+              color: Color(0xFFE3F2FD),
               fontSize: 26,
               fontWeight: FontWeight.w800,
               height: 1.16,
@@ -60,7 +60,7 @@ class BookCover extends StatelessWidget {
           Text(
             EncyclopediaStrings.coverSubtitle.of(language),
             style: const TextStyle(
-              color: Color(0x99D6E4F8),
+              color: Color(0x99E3F2FD),
               fontSize: 12,
               height: 1.6,
             ),
@@ -71,7 +71,7 @@ class BookCover extends StatelessWidget {
             height: 1,
             decoration: const BoxDecoration(
               gradient: LinearGradient(
-                colors: [Color(0xFFE8C88A), Color(0x00E8C88A)],
+                colors: [Color(0xFF90CAF9), Color(0x0090CAF9)],
               ),
             ),
           ),
@@ -82,7 +82,7 @@ class BookCover extends StatelessWidget {
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
               color: Colors.white.withValues(alpha: 0.07),
-              border: Border.all(color: const Color(0x48E8C88A)),
+              border: Border.all(color: const Color(0x4890CAF9)),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Column(
@@ -98,7 +98,7 @@ class BookCover extends StatelessWidget {
                           Text(
                             EncyclopediaStrings.visaLabel.of(language),
                             style: const TextStyle(
-                              color: Color(0xCCE8C88A),
+                              color: Color(0xCC90CAF9),
                               fontSize: 9.5,
                               fontWeight: FontWeight.w600,
                               letterSpacing: 1,
@@ -109,7 +109,7 @@ class BookCover extends StatelessWidget {
                             visaStatus?.fullLabel ??
                                 EncyclopediaStrings.visaNotSet.of(language),
                             style: const TextStyle(
-                              color: Color(0xFFEDF3FB),
+                              color: Color(0xFFE3F2FD),
                               fontSize: 14,
                               fontWeight: FontWeight.w700,
                             ),
@@ -123,13 +123,13 @@ class BookCover extends StatelessWidget {
                         vertical: 3,
                       ),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFE8C88A),
+                        color: const Color(0xFF90CAF9),
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: const Text(
                         'D-$_visaDDay',
                         style: TextStyle(
-                          color: Color(0xFF3D2E12),
+                          color: Color(0xFF0D47A1),
                           fontSize: 11,
                           fontWeight: FontWeight.w700,
                         ),
@@ -139,9 +139,11 @@ class BookCover extends StatelessWidget {
                 ),
                 const SizedBox(height: 7),
                 Text(
-                  EncyclopediaStrings.visaNote.of(language),
+                  visaStatus != null
+                      ? EncyclopediaStrings.visaNote.of(language)
+                      : EncyclopediaStrings.visaNoteNotSet.of(language),
                   style: const TextStyle(
-                    color: Color(0x8CD6E4F8),
+                    color: Color(0x8CE3F2FD),
                     fontSize: 10.5,
                   ),
                 ),
@@ -154,7 +156,7 @@ class BookCover extends StatelessWidget {
           Text(
             EncyclopediaStrings.quickAccessLabel.of(language),
             style: const TextStyle(
-              color: Color(0x80D6E4F8),
+              color: Color(0x80E3F2FD),
               fontSize: 9.5,
               fontWeight: FontWeight.w600,
               letterSpacing: 1.2,
@@ -188,14 +190,14 @@ class BookCover extends StatelessWidget {
                           Icon(
                             item.icon,
                             size: 16,
-                            color: const Color(0xFFDCE7F7),
+                            color: const Color(0xFFE3F2FD),
                           ),
                           const SizedBox(height: 5),
                           Text(
                             label.of(language),
                             textAlign: TextAlign.center,
                             style: const TextStyle(
-                              color: Color(0xFFDCE7F7),
+                              color: Color(0xFFE3F2FD),
                               fontSize: 9.5,
                               fontWeight: FontWeight.w500,
                               height: 1.3,
@@ -225,7 +227,7 @@ class BookCover extends StatelessWidget {
                 Text(
                   EncyclopediaStrings.searchHint.of(language),
                   style: const TextStyle(
-                    color: Color(0xFF7C8BA1),
+                    color: Color(0xFF90CAF9),
                     fontSize: 11.5,
                   ),
                 ),
