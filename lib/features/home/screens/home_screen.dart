@@ -10,6 +10,7 @@ import '../../worklog/controllers/work_log_controller.dart';
 import '../../worklog/models/daily_work_record.dart';
 import '../../worklog/screens/accident_navigator_screen.dart';
 import '../../worklog/screens/wage_navigator_screen.dart';
+import '../../worklog/services/location_verify_service.dart';
 import '../models/home_strings.dart';
 import '../models/weather_info.dart';
 import '../services/weather_api_service.dart';
@@ -509,27 +510,10 @@ class _WorkWidget extends StatelessWidget {
                         ),
                         if (hasClockIn) ...[
                           const SizedBox(height: 4.5),
-                          Row(
-                            children: [
-                              Container(
-                                width: 7.5,
-                                height: 7.5,
-                                decoration: const BoxDecoration(
-                                  color: AppColors.secondary,
-                                  shape: BoxShape.circle,
-                                ),
-                              ),
-                              const SizedBox(width: 7.5),
-                              Expanded(
-                                child: Text(
-                                  HomeStrings.workGpsVerified.of(lang),
-                                  style: const TextStyle(
-                                    fontSize: 17,
-                                    color: AppColors.textSecondary,
-                                  ),
-                                ),
-                              ),
-                            ],
+                          _HomeLocationVerification(
+                            verified: record.gpsVerified,
+                            language: lang,
+                            onVerified: controller.markTodayLocationVerified,
                           ),
                         ],
                       ],
@@ -603,6 +587,136 @@ class _WorkWidget extends StatelessWidget {
 }
 
 /// 핵심 기능: 게스트(비로그인)면 데모 값, 로그인하면 실제 프로필 체류자격을 보여준다.
+class _HomeLocationVerification extends StatefulWidget {
+  const _HomeLocationVerification({
+    required this.verified,
+    required this.language,
+    required this.onVerified,
+  });
+
+  final bool verified;
+  final AppLanguage language;
+  final VoidCallback onVerified;
+
+  @override
+  State<_HomeLocationVerification> createState() =>
+      _HomeLocationVerificationState();
+}
+
+class _HomeLocationVerificationState extends State<_HomeLocationVerification> {
+  bool _verifying = false;
+
+  Future<void> _verify() async {
+    setState(() => _verifying = true);
+    try {
+      final status = await LocationVerifyService().verifyCurrentLocation();
+      if (!mounted) return;
+      switch (status) {
+        case LocationVerifyStatus.verified:
+          widget.onVerified();
+          break;
+        case LocationVerifyStatus.serviceDisabled:
+          _showMessage(HomeStrings.workGpsServiceDisabled.of(widget.language));
+          break;
+        case LocationVerifyStatus.permissionDenied:
+          _showMessage(HomeStrings.workGpsPermissionDenied.of(widget.language));
+          break;
+        case LocationVerifyStatus.rejected:
+          _showMessage(HomeStrings.workGpsVerifyFailed.of(widget.language));
+          break;
+        case LocationVerifyStatus.error:
+          _showMessage(HomeStrings.workGpsVerifyError.of(widget.language));
+          break;
+      }
+    } finally {
+      if (mounted) setState(() => _verifying = false);
+    }
+  }
+
+  void _showMessage(String text) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(text), duration: const Duration(seconds: 2)),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (widget.verified) {
+      return Row(
+        children: [
+          Container(
+            width: 7.5,
+            height: 7.5,
+            decoration: const BoxDecoration(
+              color: AppColors.secondary,
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: 7.5),
+          Expanded(
+            child: Text(
+              HomeStrings.workGpsVerified.of(widget.language),
+              style: const TextStyle(
+                fontSize: 17,
+                color: AppColors.textSecondary,
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: InkWell(
+        onTap: _verifying ? null : _verify,
+        borderRadius: BorderRadius.circular(20),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          decoration: BoxDecoration(
+            color: AppColors.blueBg,
+            border: Border.all(color: AppColors.primary),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (_verifying) ...[
+                const SizedBox(
+                  width: 14,
+                  height: 14,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: AppColors.primary,
+                  ),
+                ),
+                const SizedBox(width: 7),
+              ] else ...[
+                const Icon(
+                  Icons.location_on_outlined,
+                  size: 17,
+                  color: AppColors.primary,
+                ),
+                const SizedBox(width: 5),
+              ],
+              Flexible(
+                child: Text(
+                  HomeStrings.workGpsVerifyButton.of(widget.language),
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.primary,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _VisaWidget extends StatelessWidget {
   const _VisaWidget({required this.profile, required this.lang});
   final UserProfileController profile;

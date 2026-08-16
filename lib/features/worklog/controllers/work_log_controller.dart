@@ -64,6 +64,14 @@ class WorkLogController extends ChangeNotifier {
     notifyListeners();
   }
 
+  void markTodayLocationVerified() {
+    final key = today;
+    final current = _records[key] ?? DailyWorkRecord.empty;
+    if (current.clockIn == null || current.gpsVerified) return;
+    _records[key] = current.copyWith(gpsVerified: true);
+    notifyListeners();
+  }
+
   DailyWorkRecord recordFor(DateTime day) =>
       _records[DateUtils.dateOnly(day)] ?? DailyWorkRecord.empty;
 

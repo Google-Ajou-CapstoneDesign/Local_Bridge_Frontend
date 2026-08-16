@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:geolocator/geolocator.dart';
 import '../../../core/app_language.dart';
 import '../../../core/user_profile_controller.dart';
 import '../../../theme/app_colors.dart';
@@ -146,11 +145,11 @@ class _WorkLogStrings {
     zh: '📷 时间戳照片',
     vi: '📷 Ảnh có dấu thời gian',
   );
-  static const payslipAttach = L10nText(
-    ko: '📎 급여명세서 첨부',
-    en: '📎 Attach payslip',
-    zh: '📎 附加工资单',
-    vi: '📎 Đính kèm phiếu lương',
+  static const transitCardAttach = L10nText(
+    ko: '🚌 교통카드 기록',
+    en: '🚌 Transit card record',
+    zh: '🚌 交通卡记录',
+    vi: '🚌 Lịch sử thẻ giao thông',
   );
   static const audioRecord = L10nText(
     ko: '🎙️ 녹음하기',
@@ -1092,7 +1091,7 @@ class _DailyHookBody extends StatelessWidget {
                   const SizedBox(width: 7),
                   Expanded(
                     child: _AttachButton(
-                      label: _WorkLogStrings.payslipAttach.of(language),
+                      label: _WorkLogStrings.transitCardAttach.of(language),
                       onTap: () {},
                     ),
                   ),
@@ -1263,38 +1262,24 @@ class _LocationVerifyBadgeState extends State<_LocationVerifyBadge> {
     final lang = widget.language;
     setState(() => _verifying = true);
     try {
-      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
-      if (!serviceEnabled) {
-        _showMessage(_WorkLogStrings.gpsServiceDisabled.of(lang));
-        return;
+      final status = await LocationVerifyService().verifyCurrentLocation();
+      switch (status) {
+        case LocationVerifyStatus.verified:
+          widget.onVerified();
+          break;
+        case LocationVerifyStatus.serviceDisabled:
+          _showMessage(_WorkLogStrings.gpsServiceDisabled.of(lang));
+          break;
+        case LocationVerifyStatus.permissionDenied:
+          _showMessage(_WorkLogStrings.gpsPermissionDenied.of(lang));
+          break;
+        case LocationVerifyStatus.rejected:
+          _showMessage(_WorkLogStrings.gpsVerifyFailed.of(lang));
+          break;
+        case LocationVerifyStatus.error:
+          _showMessage(_WorkLogStrings.gpsVerifyError.of(lang));
+          break;
       }
-      var permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-      }
-      if (permission == LocationPermission.denied ||
-          permission == LocationPermission.deniedForever) {
-        _showMessage(_WorkLogStrings.gpsPermissionDenied.of(lang));
-        return;
-      }
-
-      final position = await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.high,
-        ),
-      );
-      final result = await LocationVerifyService().verify(
-        latitude: position.latitude,
-        longitude: position.longitude,
-        accuracyM: position.accuracy,
-      );
-      if (result.verified) {
-        widget.onVerified();
-      } else {
-        _showMessage(_WorkLogStrings.gpsVerifyFailed.of(lang));
-      }
-    } catch (_) {
-      _showMessage(_WorkLogStrings.gpsVerifyError.of(lang));
     } finally {
       if (mounted) setState(() => _verifying = false);
     }
@@ -1377,9 +1362,9 @@ class _LocationVerifyBadgeState extends State<_LocationVerifyBadge> {
 
 /// 근로계약서·임금명세서·사업주 메시지·통화 녹음을 모아 보여주는 접이식
 /// 보관함. html_files/프론트엔드_최종.html의 "사업주 공식 증빙 보관함"을
-/// 그대로 옮겼다 — 계약서·명세서는 온보딩의 "서류 보관" 단계에서 채운
-/// UserProfileController.contractStored/payslipStored를 그대로 재사용하고
-/// (실제 파일 업로드는 아직 없어 "넣어뒀다"는 상태만 기록하는 것도 동일),
+/// 그대로 옮겼다. 계약서·명세서는 이 보관함에서
+/// UserProfileController.contractStored/payslipStored 상태를 직접 변경하며,
+/// 실제 파일 업로드는 아직 없어 "넣어뒀다"는 상태만 기록한다.
 /// 카톡·문자와 통화 녹음은 아직 저장할 방법이 없어 "준비 중" 안내만 띄운다.
 class _VaultBox extends StatefulWidget {
   const _VaultBox({required this.language});
