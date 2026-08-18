@@ -119,6 +119,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                 Expanded(
                   child: PageView.builder(
                     controller: _pageController,
+                    reverse: true,
                     itemCount: detail.pages.length,
                     onPageChanged: (page) {
                       setState(() => _currentPage = page);
