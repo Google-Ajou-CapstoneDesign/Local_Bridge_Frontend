@@ -51,10 +51,10 @@ class _S {
     vi: 'Chưa đăng ký? Đăng ký ngay',
   );
   static const errorInvalid = L10nText(
-    ko: '이메일 또는 비밀번호가 올바르지 않아요.',
+    ko: '올바르지 않은 아이디 또는 비밀번호 입니다',
     en: 'Incorrect email or password.',
-    zh: '邮箱或密码不正确。',
-    vi: 'Email hoặc mật khẩu không đúng.',
+    zh: '账号或密码不正确。',
+    vi: 'Tài khoản hoặc mật khẩu không đúng.',
   );
   static const googleFailed = L10nText(
     ko: 'Google 로그인에 실패했어요. 잠시 후 다시 시도해주세요.',
