@@ -2,7 +2,8 @@ import 'package:flutter/widgets.dart';
 import 'app_language.dart';
 import 'visa_status.dart';
 
-/// 앱 전역 사용자 프로필 상태 — 온보딩(언어·체류자격·서류 보관)에서 채워지고,
+/// 앱 전역 사용자 프로필 상태 — 언어는 온보딩에서, 체류자격·서류 보관 상태는
+/// 회원가입/로그인 및 설정 화면에서 채워지고,
 /// 백과사전의 언어 전환·MY VISA 카드가 이 값을 그대로 읽고 쓴다.
 /// TODO(backend): 로그인 연동 전까지는 세션 동안만 유지되는 로컬 상태다(재시작 시 초기화).
 class UserProfileController extends ChangeNotifier {

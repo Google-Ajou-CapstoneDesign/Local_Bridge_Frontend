@@ -4,6 +4,7 @@ import '../../../core/user_profile_controller.dart';
 import '../../../theme/app_colors.dart';
 import '../../auth/services/auth_service.dart';
 import '../../auth/services/user_profile_api_service.dart';
+import '../../wage_calculator/models/wage_diagnosis.dart' show formatWon;
 import '../controllers/work_log_controller.dart';
 import '../models/daily_work_record.dart';
 import '../screens/accident_navigator_screen.dart';
@@ -115,18 +116,6 @@ class _WorkLogStrings {
     zh: '下班',
     vi: 'Tan ca',
   );
-  static const clockInNow = L10nText(
-    ko: '출근하기',
-    en: 'Clock in',
-    zh: '上班打卡',
-    vi: 'Chấm công vào',
-  );
-  static const clockOutNow = L10nText(
-    ko: '퇴근하기',
-    en: 'Clock out',
-    zh: '下班打卡',
-    vi: 'Chấm công ra',
-  );
   static const breakLabel = L10nText(
     ko: '휴게',
     en: 'Break',
@@ -139,6 +128,37 @@ class _WorkLogStrings {
     en: 'Actual hours worked',
     zh: '实际工作时长',
     vi: 'Thời gian làm việc thực tế',
+  );
+  static const estimatedWage = L10nText(
+    ko: '예상 임금(세전)',
+    en: 'Estimated wage (pre-tax)',
+    zh: '预计工资（税前）',
+    vi: 'Lương dự kiến (trước thuế)',
+  );
+
+  static const monthTotalWage = L10nText(
+    ko: '이번 달 총 임금',
+    en: "This month's total wage",
+    zh: '本月总工资',
+    vi: 'Tổng lương tháng này',
+  );
+  static const monthTotalWageHint = L10nText(
+    ko: '탭하여 시급 수정',
+    en: 'Tap to edit hourly wage',
+    zh: '点击修改时薪',
+    vi: 'Chạm để sửa lương theo giờ',
+  );
+  static const hourlyWageDialogTitle = L10nText(
+    ko: '적용 시급',
+    en: 'Hourly wage',
+    zh: '适用时薪',
+    vi: 'Lương theo giờ',
+  );
+  static const hourlyWageDialogSubtitle = L10nText(
+    ko: '실근무시간 × 시급으로 대략적인 임금을 계산해요. 정확한 계산은 임금계산기 탭을 이용하세요.',
+    en: 'We estimate wages as hours worked × hourly wage. For an exact calculation, use the Wage Calculator tab.',
+    zh: '按"实际工作时长 × 时薪"估算工资。精确计算请使用工资计算器标签页。',
+    vi: 'Lương được ước tính bằng giờ làm thực tế × lương theo giờ. Để tính chính xác, hãy dùng tab Máy tính lương.',
   );
 
   static const photoAttach = L10nText(
@@ -448,7 +468,7 @@ class _WorkLogSheetState extends State<WorkLogSheet> {
                               onDayTap: (day) => _openDayRecord(day, lang),
                               language: lang,
                             ),
-                            _TodayClockActions(
+                            _MonthlyWageCard(
                               controller: _controller,
                               language: lang,
                             ),
@@ -467,95 +487,139 @@ class _WorkLogSheetState extends State<WorkLogSheet> {
   }
 }
 
-class _TodayClockActions extends StatelessWidget {
-  const _TodayClockActions({required this.controller, required this.language});
+/// 출퇴근 버튼이 있던 자리 — 대신 이번 달 총 예상 임금을 보여준다.
+/// html_files/frontend_근무기록장_총임금추가.html의 "9월 총합계" 배너와
+/// 같은 자리·역할이다. 탭하면 계산에 쓸 시급을 바꿀 수 있다.
+class _MonthlyWageCard extends StatelessWidget {
+  const _MonthlyWageCard({required this.controller, required this.language});
 
   final WorkLogController controller;
   final AppLanguage language;
 
-  String _formatTime(TimeOfDay time) =>
-      '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
+  Future<void> _editHourlyWage(BuildContext context) async {
+    final textController = TextEditingController(
+      text: controller.hourlyWage.round().toString(),
+    );
+    final result = await showDialog<double>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(
+            _WorkLogStrings.hourlyWageDialogTitle.of(language),
+            style: const TextStyle(fontSize: 15),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                _WorkLogStrings.hourlyWageDialogSubtitle.of(language),
+                style: const TextStyle(
+                  fontSize: 11.5,
+                  color: AppColors.textMuted,
+                  height: 1.45,
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: textController,
+                keyboardType: TextInputType.number,
+                autofocus: true,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.primary,
+                ),
+                decoration: InputDecoration(
+                  suffixText: language == AppLanguage.ko ? '원' : null,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(9),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(_WorkLogStrings.cancel.of(language)),
+            ),
+            FilledButton(
+              onPressed: () =>
+                  Navigator.of(context).pop(double.tryParse(textController.text)),
+              child: Text(_WorkLogStrings.confirm.of(language)),
+            ),
+          ],
+        );
+      },
+    );
+    if (result != null && result > 0) controller.setHourlyWage(result);
+  }
 
   @override
   Widget build(BuildContext context) {
-    final record = controller.todayRecord;
-    final hasClockIn = record.clockIn != null;
-    final hasClockOut = record.clockOut != null;
-
     return Padding(
       padding: const EdgeInsets.fromLTRB(15, 16, 15, 24),
-      child: Row(
-        children: [
-          Expanded(
-            child: FilledButton.icon(
-              onPressed: hasClockIn ? null : controller.clockInToday,
-              icon: Icon(
-                hasClockIn ? Icons.check_circle : Icons.login_rounded,
-                size: 18,
-              ),
-              label: FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Text(
-                  hasClockIn
-                      ? '${_WorkLogStrings.clockIn.of(language)} ${_formatTime(record.clockIn!)}'
-                      : _WorkLogStrings.clockInNow.of(language),
-                ),
-              ),
-              style: FilledButton.styleFrom(
-                minimumSize: const Size.fromHeight(52),
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
-                disabledBackgroundColor: AppColors.blueBg,
-                disabledForegroundColor: AppColors.primary,
-                textStyle: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w800,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(13),
-                ),
-              ),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(15),
+        onTap: () => _editHourlyWage(context),
+        child: Ink(
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 13),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Color(0xFF2196F3), Color(0xFF0D47A1)],
             ),
+            borderRadius: BorderRadius.circular(15),
           ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: FilledButton.icon(
-              onPressed: hasClockIn && !hasClockOut
-                  ? controller.clockOutToday
-                  : null,
-              icon: Icon(
-                hasClockOut ? Icons.check_circle : Icons.logout_rounded,
-                size: 18,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    _WorkLogStrings.monthTotalWage.of(language),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.white.withValues(alpha: 0.9),
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    formatWon(controller.monthTotalWage, language),
+                    style: const TextStyle(
+                      fontSize: 21,
+                      color: Colors.white,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ],
               ),
-              label: FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Text(
-                  hasClockOut
-                      ? '${_WorkLogStrings.clockOut.of(language)} ${_formatTime(record.clockOut!)}'
-                      : _WorkLogStrings.clockOutNow.of(language),
-                ),
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.edit_outlined,
+                    color: Colors.white,
+                    size: 18,
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    _WorkLogStrings.monthTotalWageHint.of(language),
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 8.5,
+                      color: Colors.white.withValues(alpha: 0.85),
+                    ),
+                  ),
+                ],
               ),
-              style: FilledButton.styleFrom(
-                minimumSize: const Size.fromHeight(52),
-                backgroundColor: AppColors.secondary,
-                foregroundColor: Colors.white,
-                disabledBackgroundColor: hasClockOut
-                    ? AppColors.green50
-                    : AppColors.border,
-                disabledForegroundColor: hasClockOut
-                    ? AppColors.green900
-                    : AppColors.textMuted,
-                textStyle: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w800,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(13),
-                ),
-              ),
-            ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -1075,6 +1139,38 @@ class _DailyHookBody extends StatelessWidget {
                         fontSize: 13.5,
                         fontWeight: FontWeight.w800,
                         color: Color(0xFF0D47A1),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 11,
+                  vertical: 10,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.green50,
+                  borderRadius: BorderRadius.circular(9),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      _WorkLogStrings.estimatedWage.of(language),
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: AppColors.green900,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    Text(
+                      formatWon(controller.wageForDay(day), language),
+                      style: const TextStyle(
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.green900,
                       ),
                     ),
                   ],

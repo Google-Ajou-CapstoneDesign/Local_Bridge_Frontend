@@ -4,6 +4,7 @@ import '../../../common/widgets/language_sheet.dart';
 import '../../../core/app_language.dart';
 import '../../../core/user_profile_controller.dart';
 import '../../../theme/app_colors.dart';
+import '../../onboarding/screens/guide_screen.dart';
 
 /// Tab 4 · 설정. 언어·비자·프로필·알림 관리.
 /// TODO(backend): Firebase Auth 프로필 및 users 컬렉션 값과 연동, 로그아웃 처리.
@@ -46,6 +47,12 @@ class SettingsHomeScreen extends StatelessWidget {
     zh: '已开启',
     vi: 'Bật',
   );
+  static const _guideLabel = L10nText(
+    ko: '사용설명서',
+    en: 'User guide',
+    zh: '使用说明',
+    vi: 'Hướng dẫn sử dụng',
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -70,6 +77,14 @@ class SettingsHomeScreen extends StatelessWidget {
         _notificationLabel.of(lang),
         _notificationOn.of(lang),
         () {},
+      ),
+      (
+        Icons.menu_book_outlined,
+        _guideLabel.of(lang),
+        '',
+        () => Navigator.of(
+          context,
+        ).push(MaterialPageRoute(builder: (_) => const GuideScreen())),
       ),
     ];
 
