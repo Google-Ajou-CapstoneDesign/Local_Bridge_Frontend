@@ -65,6 +65,31 @@ class WorkLogController extends ChangeNotifier {
     return total;
   }
 
+  /// [focusedMonth] 기준 출퇴근이 모두 기록된 날 수 — 홈 화면 "이번 달 근무" 카드.
+  int get monthWorkedDays {
+    final month = focusedMonth;
+    return _records.entries
+        .where(
+          (e) =>
+              e.key.year == month.year &&
+              e.key.month == month.month &&
+              e.value.hasEntry,
+        )
+        .length;
+  }
+
+  /// [focusedMonth] 기준 총 실근무시간 — 홈 화면 "이번 달 근무" 카드.
+  Duration get monthTotalWorkedDuration {
+    final month = focusedMonth;
+    var total = Duration.zero;
+    for (final entry in _records.entries) {
+      if (entry.key.year == month.year && entry.key.month == month.month) {
+        total += entry.value.workedDuration;
+      }
+    }
+    return total;
+  }
+
   void _seedDemoData() {
     final now = today;
     // 오늘은 실제 출근/퇴근 버튼으로 기록할 수 있도록 비워 둔다.

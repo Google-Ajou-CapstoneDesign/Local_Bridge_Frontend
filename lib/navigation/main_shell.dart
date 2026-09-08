@@ -266,11 +266,22 @@ class _MainShellState extends State<MainShell> {
     HomeScreen(
       workLogController: _workLogController,
       onOpenWorkLog: _openWorkLog,
+      onOpenWageCalculator: () => _switchToTab(1),
+      onOpenEncyclopedia: () => _switchToTab(2),
     ),
     const WageCalculatorScreen(),
     const EncyclopediaHomeScreen(),
     const SettingsHomeScreen(),
   ];
+
+  /// 홈 화면의 빠른 접근 그리드에서 다른 탭으로 바로 이동할 때 쓴다 —
+  /// _onTabTap과 동일하게 열려 있는 오버레이부터 닫는다.
+  void _switchToTab(int pageIndex) {
+    setState(() {
+      _closeAllOverlays();
+      _activeIndex = pageIndex;
+    });
+  }
 
   bool get _anyOverlayOpen =>
       _worklogOpen || _aiChatOpen || _calendarLoginGateOpen;
@@ -401,7 +412,11 @@ class _MainShellState extends State<MainShell> {
                     child: AnimatedOpacity(
                       opacity: _anyOverlayOpen ? 0 : 1,
                       duration: const Duration(milliseconds: 180),
-                      child: _AiBubble(key: _aiBubbleKey, onTap: _toggleAiChat),
+                      child: _AiBubble(
+                        key: _aiBubbleKey,
+                        language: UserProfileScope.of(context).language,
+                        onTap: _toggleAiChat,
+                      ),
                     ),
                   ),
                 ),
@@ -449,46 +464,81 @@ class _MainShellState extends State<MainShell> {
   }
 }
 
+const _aiBubbleLabel = L10nText(
+  ko: 'AI 가이드',
+  en: 'AI Guide',
+  zh: 'AI引导',
+  vi: 'Trợ lý AI',
+);
+
+/// design_files/App_Design.html의 .ai-fab(알약형, navy 배경, "AI" 배지) 스펙.
 class _AiBubble extends StatelessWidget {
-  const _AiBubble({super.key, required this.onTap});
+  const _AiBubble({
+    super.key,
+    required this.language,
+    required this.onTap,
+  });
+  final AppLanguage language;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
-      customBorder: const CircleBorder(),
+      borderRadius: BorderRadius.circular(40),
       child: Container(
-        width: 47,
-        height: 47,
-        alignment: Alignment.center,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          gradient: const LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFF4CAF50), Color(0xFF1B5E20)],
-          ),
+          color: AppColors.navy,
+          borderRadius: BorderRadius.circular(40),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF4CAF50).withValues(alpha: 0.4),
-              blurRadius: 16,
+              color: AppColors.navy.withValues(alpha: 0.35),
+              blurRadius: 20,
               offset: const Offset(0, 6),
             ),
           ],
         ),
-        child: const Text(
-          'AI',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 13,
-            fontWeight: FontWeight.w800,
-          ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 5,
+                vertical: 2,
+              ),
+              decoration: BoxDecoration(
+                color: const Color(0xFF3C536F),
+                borderRadius: BorderRadius.circular(5),
+              ),
+              child: const Text(
+                'AI',
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.5,
+                  color: Color(0xFFCFE0F9),
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              _aiBubbleLabel.of(language),
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 }
+
+/// design_files/App_Design.html의 .mobile-nav button 비활성 색(#99a4b4).
+const _inactiveTabColor = Color(0xFF99A4B4);
 
 class _BottomTabBar extends StatelessWidget {
   const _BottomTabBar({
@@ -548,7 +598,7 @@ class _BottomTabBar extends StatelessWidget {
                                   fontWeight: FontWeight.w600,
                                   color: isActive
                                       ? AppColors.primary
-                                      : AppColors.textMuted,
+                                      : _inactiveTabColor,
                                 ),
                               ),
                             ],
@@ -561,7 +611,7 @@ class _BottomTabBar extends StatelessWidget {
                   final isActive = !worklogOpen && tab.pageIndex == activeIndex;
                   final color = isActive
                       ? AppColors.primary
-                      : AppColors.textMuted;
+                      : _inactiveTabColor;
                   return Expanded(
                     child: InkWell(
                       key: tabKeys[i],
@@ -627,14 +677,10 @@ class _CalendarBubble extends StatelessWidget {
         alignment: Alignment.center,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          gradient: const LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFF0D47A1), Color(0xFF0D47A1)],
-          ),
+          color: AppColors.primary,
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF0D47A1).withValues(alpha: 0.45),
+              color: AppColors.primary.withValues(alpha: 0.35),
               blurRadius: 14,
               offset: const Offset(0, 5),
             ),
@@ -650,9 +696,9 @@ class _CalendarBubble extends StatelessWidget {
           children: [
             Text(
               '${now.month}월',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 7.5,
-                color: Color(0xFF90CAF9),
+                color: Colors.white.withValues(alpha: 0.7),
                 fontWeight: FontWeight.w700,
               ),
             ),
