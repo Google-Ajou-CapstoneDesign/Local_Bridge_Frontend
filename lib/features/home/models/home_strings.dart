@@ -225,11 +225,11 @@ class HomeStrings {
     zh: '工资计算器',
     vi: 'Máy tính lương',
   );
-  static const quickEncyclopedia = L10nText(
-    ko: '생활백과사전',
-    en: 'Life encyclopedia',
-    zh: '生活百科全书',
-    vi: 'Cẩm nang đời sống',
+  static const quickNavigator = L10nText(
+    ko: '네비게이터',
+    en: 'Navigator',
+    zh: '导航',
+    vi: 'Điều hướng',
   );
   static const quickVault = L10nText(
     ko: '내 증빙 보관함',

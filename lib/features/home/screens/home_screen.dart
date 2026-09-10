@@ -27,13 +27,13 @@ class HomeScreen extends StatelessWidget {
     required this.workLogController,
     required this.onOpenWorkLog,
     required this.onOpenWageCalculator,
-    required this.onOpenEncyclopedia,
+    required this.onOpenNavigator,
   });
 
   final WorkLogController workLogController;
   final VoidCallback onOpenWorkLog;
   final VoidCallback onOpenWageCalculator;
-  final VoidCallback onOpenEncyclopedia;
+  final VoidCallback onOpenNavigator;
 
   @override
   Widget build(BuildContext context) {
@@ -66,7 +66,7 @@ class HomeScreen extends StatelessWidget {
               lang: lang,
               onOpenWorkLog: onOpenWorkLog,
               onOpenWageCalculator: onOpenWageCalculator,
-              onOpenEncyclopedia: onOpenEncyclopedia,
+              onOpenNavigator: onOpenNavigator,
             ),
             const SizedBox(height: 22),
             _SectionTitle(text: HomeStrings.helpGuidesTitle.of(lang)),
@@ -915,12 +915,12 @@ class _QuickAccessGrid extends StatelessWidget {
     required this.lang,
     required this.onOpenWorkLog,
     required this.onOpenWageCalculator,
-    required this.onOpenEncyclopedia,
+    required this.onOpenNavigator,
   });
   final AppLanguage lang;
   final VoidCallback onOpenWorkLog;
   final VoidCallback onOpenWageCalculator;
-  final VoidCallback onOpenEncyclopedia;
+  final VoidCallback onOpenNavigator;
 
   @override
   Widget build(BuildContext context) {
@@ -943,11 +943,11 @@ class _QuickAccessGrid extends StatelessWidget {
             onTap: onOpenWageCalculator,
           ),
           _QuickAccessItem(
-            icon: Icons.menu_book_outlined,
+            icon: Icons.explore_outlined,
             iconBg: AppColors.orangeBg,
             iconFg: AppColors.orangeFg,
-            label: HomeStrings.quickEncyclopedia.of(lang),
-            onTap: onOpenEncyclopedia,
+            label: HomeStrings.quickNavigator.of(lang),
+            onTap: onOpenNavigator,
           ),
           _QuickAccessItem(
             icon: Icons.folder_shared_outlined,

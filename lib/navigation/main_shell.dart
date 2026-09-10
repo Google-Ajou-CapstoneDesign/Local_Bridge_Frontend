@@ -2,21 +2,24 @@ import 'package:flutter/material.dart';
 import '../core/app_language.dart';
 import '../core/user_profile_controller.dart';
 import '../features/ai_guide/widgets/ai_chat_sheet.dart';
-import '../features/encyclopedia/screens/encyclopedia_home_screen.dart';
 import '../features/home/screens/home_screen.dart';
 import '../features/onboarding/models/app_tour_step.dart';
 import '../features/onboarding/widgets/spotlight_tour_overlay.dart';
 import '../features/settings/screens/settings_home_screen.dart';
 import '../features/wage_calculator/screens/wage_calculator_screen.dart';
 import '../features/worklog/controllers/work_log_controller.dart';
+import '../features/worklog/screens/navigator_home_screen.dart';
 import '../features/worklog/widgets/calendar_login_gate.dart';
 import '../features/worklog/widgets/work_log_sheet.dart';
 import '../theme/app_colors.dart';
 
-/// 하단 탭 셸. 홈 · 임금계산기 · 백과사전 · 설정 4개는 각자 Navigator를 가진 일반
+/// 하단 탭 셸. 홈 · 임금계산기 · 네비게이터 · 설정 4개는 각자 Navigator를 가진 일반
 /// 탭이다. 가운데 "캘린더"는 근무기록장 시트를 띄운다 — 하단 탭바를 가리지 않는
-/// 오버레이 방식이다(프론트엔드_구상_확장.html의 설계 의도). 임금체불/산재 내비게이터로의
-/// 진입은 홈 화면의 바로가기 카드에서 이뤄진다.
+/// 오버레이 방식이다(프론트엔드_구상_확장.html의 설계 의도). "네비게이터" 탭은
+/// 임금체불/산재 중 하나를 고르면 해당 내비게이터로 이동하는 선택 화면이다
+/// (같은 진입은 홈 화면의 바로가기 카드에서도 가능). 원래 이 자리에 있던
+/// 백과사전은 features/encyclopedia에 코드/데이터 그대로 남아 있으나 메인
+/// 탭에서는 더 이상 연결되지 않는다.
 /// AI 가이드는 우측 하단 AI 버블 → 슬라이드업 시트로 진입한다.
 ///
 /// 이 앱에서 로그인이 실제로 필요한 곳은 캘린더뿐이라, 캘린더를 처음 열 때
@@ -53,17 +56,17 @@ class _TourStrings {
     vi: 'Xem thời tiết hôm nay, thông tin visa và trạng thái chấm công trong nháy mắt. Ứng dụng luôn bắt đầu từ đây.',
   );
 
-  static const encyclopediaTitle = L10nText(
-    ko: '📖 백과사전',
-    en: '📖 Encyclopedia',
-    zh: '📖 百科全书',
-    vi: '📖 Bách khoa toàn thư',
+  static const navigatorTitle = L10nText(
+    ko: '🧭 네비게이터',
+    en: '🧭 Navigator',
+    zh: '🧭 导航',
+    vi: '🧭 Điều hướng',
   );
-  static const encyclopediaBody = L10nText(
-    ko: 'ARC 발급, 통신 개통 등 한국 생활에 필요한 행정·생활·노동 정보를 카테고리별로 확인할 수 있어요.',
-    en: 'Browse administrative, daily-life, and labor information you need in Korea — like ARC issuance or getting a phone plan — organized by category.',
-    zh: '可按类别查看在韩生活所需的行政、生活、劳动信息，例如办理外国人登记证、开通通信等。',
-    vi: 'Xem thông tin hành chính, đời sống, lao động cần thiết tại Hàn Quốc theo từng danh mục — như cấp thẻ ARC, đăng ký viễn thông.',
+  static const navigatorBody = L10nText(
+    ko: '임금체불·산재 처리 중 무엇이 필요한지 고르면 신고·신청까지 단계별로 안내해드려요.',
+    en: 'Choose whether you need help with unpaid wages or a workplace injury, and get step-by-step guidance all the way to filing.',
+    zh: '选择您需要处理欠薪还是工伤，我们会逐步引导您完成申诉或申请。',
+    vi: 'Chọn bạn cần hỗ trợ về nợ lương hay tai nạn lao động, chúng tôi sẽ hướng dẫn từng bước đến khi nộp đơn.',
   );
 
   static const calendarTitle = L10nText(
@@ -149,7 +152,7 @@ class _MainShellState extends State<MainShell> {
   bool? _lastSignedIn;
 
   /// 앱 첫 실행 시 주요 화면 요소를 실제 위치에서 짚어주는 스포트라이트 투어.
-  /// _tabs 순서(홈·백과사전·캘린더·임금계산기·설정)와 1:1로 대응하는 키 —
+  /// _tabs 순서(홈·네비게이터·캘린더·임금계산기·설정)와 1:1로 대응하는 키 —
   /// 캘린더 항목은 _CalendarBubble(원형 버튼)에, 나머지는 하단 탭 InkWell에 단다.
   final _tourController = AppTourController();
   final _tabKeys = List.generate(5, (_) => GlobalKey());
@@ -177,8 +180,8 @@ class _MainShellState extends State<MainShell> {
     ),
     AppTourStep(
       targetKey: _tabKeys[1],
-      title: _TourStrings.encyclopediaTitle,
-      body: _TourStrings.encyclopediaBody,
+      title: _TourStrings.navigatorTitle,
+      body: _TourStrings.navigatorBody,
     ),
     AppTourStep(
       targetKey: _tabKeys[2],
@@ -225,13 +228,13 @@ class _MainShellState extends State<MainShell> {
     ),
     _TabSpec(
       label: L10nText(
-        ko: '백과사전',
-        en: 'Encyclopedia',
-        zh: '百科全书',
-        vi: 'Cẩm nang',
+        ko: '네비게이터',
+        en: 'Navigator',
+        zh: '导航',
+        vi: 'Điều hướng',
       ),
-      icon: Icons.menu_book_outlined,
-      activeIcon: Icons.menu_book,
+      icon: Icons.explore_outlined,
+      activeIcon: Icons.explore,
       action: _NavAction.page,
       pageIndex: 2,
     ),
@@ -267,11 +270,11 @@ class _MainShellState extends State<MainShell> {
       workLogController: _workLogController,
       onOpenWorkLog: _openWorkLog,
       onOpenWageCalculator: () => _switchToTab(1),
-      onOpenEncyclopedia: () => _switchToTab(2),
+      onOpenNavigator: () => _switchToTab(2),
     ),
     const WageCalculatorScreen(),
-    const EncyclopediaHomeScreen(),
-    const SettingsHomeScreen(),
+    const NavigatorHomeScreen(),
+    SettingsHomeScreen(onOpenAiChat: _toggleAiChat),
   ];
 
   /// 홈 화면의 빠른 접근 그리드에서 다른 탭으로 바로 이동할 때 쓴다 —
