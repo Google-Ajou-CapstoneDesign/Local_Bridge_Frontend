@@ -1,4 +1,5 @@
 import '../../../core/app_language.dart';
+import '../../worklog/models/work_log_report_strings.dart';
 import '../models/flow_block.dart';
 import 'wage_fields.dart';
 
@@ -21,7 +22,7 @@ const _documentSubtitle = L10nText(
   uz: "고용노동부 · 진정서 (노동포털 접수 서식)",
 );
 
-/// 임금체불 진정 내비게이터 — 6단계 + 접수 이후 8단계 트래커.
+/// 임금체불 진정 내비게이터 — 7단계 + 접수 이후 8단계 트래커.
 /// html_files/임금체불네비게이터.html의 FLOWS.wage를 이 앱의 실제 데이터 상황에
 /// 맞게 옮겼다(재태깅 원칙은 wage_fields.dart 주석 참고).
 const wageFlowDefinition = FlowDefinition(
@@ -204,6 +205,11 @@ const wageFlowDefinition = FlowDefinition(
         ),
         PdfActionsBlock(wageFields, documentTitle: _documentTitle),
       ],
+    ),
+    FlowStep(
+      title: WorkLogReportStrings.step,
+      lead: WorkLogReportStrings.lead,
+      blocks: [WorkLogExportBlock()],
     ),
     FlowStep(
       title: L10nText(

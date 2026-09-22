@@ -11,6 +11,7 @@ import '../widgets/flow_tracker.dart';
 import '../widgets/form_editor.dart';
 import '../widgets/injury_guide_section.dart';
 import '../widgets/pdf_actions_section.dart';
+import '../widgets/work_log_export_section.dart';
 import '../widgets/wage_calc_section.dart';
 
 const _stepLabel = L10nText(
@@ -505,6 +506,7 @@ class _NavigatorFlowScreenState extends State<NavigatorFlowScreen> {
             lang: lang,
             filePrefix: widget.title.ko,
           ),
+        WorkLogExportBlock() => const WorkLogExportSection(),
         WageCalcBlock() => WageCalcSection(
           scratch: _wageScratch,
           lang: lang,
