@@ -1,4 +1,5 @@
 import '../../../core/app_language.dart';
+import '../../worklog/models/work_log_report_strings.dart';
 import '../models/flow_block.dart';
 import 'injury_fields.dart';
 
@@ -1063,6 +1064,11 @@ const injuryFlowDefinition = FlowDefinition(
           ),
         ),
       ],
+    ),
+    FlowStep(
+      title: WorkLogReportStrings.step,
+      lead: WorkLogReportStrings.lead,
+      blocks: [WorkLogExportBlock()],
     ),
     FlowStep(
       title: L10nText(
